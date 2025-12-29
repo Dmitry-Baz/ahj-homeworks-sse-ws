@@ -92,7 +92,7 @@ export default class Chat {
 
       if (Array.isArray(data)) {
         // Это список пользователей
-        this.userArea.innerHTML = "";
+        this.userArea.innerHTML = '';
         data.forEach((user) => {
           const displayName = user.name === this.you ? 'YOU' : user.name;
           this.userArea.insertAdjacentHTML(
@@ -145,7 +145,7 @@ export default class Chat {
             user: name,
           })
         );
-        this.addMessageInput.value = "";
+        this.addMessageInput.value = '';
       } else {
         alert('Соединение с чатом потеряно. Обновите страницу.');
       }
