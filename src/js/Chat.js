@@ -1,10 +1,10 @@
-import ModalForm from './ModalForm';
+import ModalForm from "./ModalForm";
 
 export default class Chat {
   constructor(container) {
     this.container = container;
     this.ModalForm = new ModalForm(container);
-    this.you = '';
+    this.you = "";
   }
 
   init() {
@@ -12,23 +12,23 @@ export default class Chat {
     this.modalNickname = document.querySelector(
       '[data-widget="modalNickname"]'
     );
-    this.formNickname = this.modalNickname.querySelector('form'); //получаем форму никнейма
-    this.inputNickname = this.formNickname.querySelector('input'); //получаем инпут никнейма
+    this.formNickname = this.modalNickname.querySelector("form"); //получаем форму никнейма
+    this.inputNickname = this.formNickname.querySelector("input"); //получаем инпут никнейма
 
     //функция отправки формы для никнейма
     const handlerClick = (e) => {
       e.preventDefault();
       this.you = this.inputNickname.value;
-      fetch('https://eventsource-websockets-backendba.onrender.com/new-user', {
-        method: 'POST',
+      fetch("https://eventsource-websockets-backendba.onrender.com/new-user", {
+        method: "POST",
         body: JSON.stringify({ name: `${this.inputNickname.value}` }),
       })
         .then((response) => response.json())
         .then((data) => {
-          if (data.status === 'error') {
+          if (data.status === "error") {
             alert(data.message);
-          } else if (data.status === 'ok') {
-            this.formNickname.removeEventListener('click', handlerClick); //удаляем обработчик формы
+          } else if (data.status === "ok") {
+            // this.formNickname.removeEventListener('click', handlerClick); //удаляем обработчик формы
             this.modalNickname.remove(); //удаляем окно никнейма
             this.ModalForm.createmodalChat(); //создаем окно чата
             this.area(); //запускаем метод работы с чатом
@@ -38,79 +38,141 @@ export default class Chat {
           return;
         });
     };
-    this.formNickname.addEventListener('submit', handlerClick);
+    this.formNickname.addEventListener("submit", handlerClick);
   }
 
   //Метод для работы с полем чата
   area() {
     this.ws = new WebSocket(
-      'wss://eventsource-websockets-backendba.onrender.com'
+      "wss://eventsource-websockets-backendba.onrender.com"
     );
 
-    this.userArea = this.container.querySelector('.modalChat__user'); //Поле списка ползователей
-    this.chatArea = this.container.querySelector('.modalChat__chat'); //Поле чата ползователей
+    this.userArea = this.container.querySelector(".modalChat__user"); //Поле списка ползователей
+    this.chatArea = this.container.querySelector(".modalChat__chat"); //Поле чата ползователей
 
-    this.ws.addEventListener('message', (e) => {
+    // старый код
+    // this.ws.addEventListener('message', (e) => {
+    //   const data = JSON.parse(e.data);
+    //   this.userContainer = document.querySelectorAll('.user');
+
+    //   //Очистка поля списка Юзеров
+    //   if (!data.type) {
+    //     for (let i = 0; i < this.userContainer.length; i++) {
+    //       this.userContainer[i].remove(); //то очищаем поле
+    //     }
+    //   }
+
+    //   //Добавление юзеров в поле списка юзеров
+    //   for (let i = 0; i < data.length; i++) {
+    //     let elem = data[i].name;
+    //     if (elem === this.you) {
+    //       elem = 'YOU'; //то имя регистрации меняем на "YOU"
+    //     }
+    //     this.userHTML = `<div class = "user">${elem}</div>`;
+    //     this.userArea.insertAdjacentHTML('beforeEnd', this.userHTML);
+    //   }
+
+    //   //Добавление переписки в поле чата
+    //   if (data.user != undefined) {
+    //     if (data.user === this.you) {
+    //       this.chatArea.insertAdjacentHTML(
+    //         'beforeEnd',
+    //         `<p class="chatRight">YOU: ${data.msg}</p>`
+    //       );
+    //     } else {
+    //       this.chatArea.insertAdjacentHTML(
+    //         'beforeEnd',
+    //         `<p class="chatUser">${data.user}:  ${data.msg}</p>`
+    //       );
+    //     }
+    //   }
+    // });
+    this.ws.addEventListener("message", (e) => {
       const data = JSON.parse(e.data);
-      this.userContainer = document.querySelectorAll('.user');
 
-      //Очистка поля списка Юзеров
-      if (!data.type) {
-        for (let i = 0; i < this.userContainer.length; i++) {
-          this.userContainer[i].remove(); //то очищаем поле
-        }
-      }
-
-      //Добавление юзеров в поле списка юзеров
-      for (let i = 0; i < data.length; i++) {
-        let elem = data[i].name;
-        if (elem === this.you) {
-          elem = 'YOU'; //то имя регистрации меняем на "YOU"
-        }
-        this.userHTML = `<div class = "user">${elem}</div>`;
-        this.userArea.insertAdjacentHTML('beforeEnd', this.userHTML);
-      }
-
-      //Добавление переписки в поле чата
-      if (data.user != undefined) {
-        if (data.user === this.you) {
-          this.chatArea.insertAdjacentHTML(
-            'beforeEnd',
-            `<p class="chatRight">YOU: ${data.msg}</p>`
+      if (Array.isArray(data)) {
+        // Это список пользователей
+        this.userArea.innerHTML = "";
+        data.forEach((user) => {
+          const displayName = user.name === this.you ? "YOU" : user.name;
+          this.userArea.insertAdjacentHTML(
+            "beforeEnd",
+            `<div class="user">${displayName}</div>`
           );
-        } else {
-          this.chatArea.insertAdjacentHTML(
-            'beforeEnd',
-            `<p class="chatUser">${data.user}:  ${data.msg}</p>`
-          );
-        }
+        });
+      } else if (data.user !== undefined) {
+        // Это сообщение от пользователя
+        const displayName = data.user === this.you ? "YOU" : data.user;
+        const messageClass = data.user === this.you ? "chatRight" : "chatUser";
+        this.chatArea.insertAdjacentHTML(
+          "beforeEnd",
+          `<p class="${messageClass}">${displayName}: ${data.msg}</p>`
+        );
       }
     });
   }
 
   //Метод отправить сообщение
+  // sendMessage(name) {
+  //   this.addMessage = this.container.querySelector('[data-id="addMessage"]'); //фома
+  //   this.addMessageInput = this.addMessage.querySelector('[data-id="message"]'); //поле ввода
+  //   this.addMessage.addEventListener('submit', (e) => {
+  //     e.preventDefault();
+  //     this.ws.send(
+  //       JSON.stringify({
+  //         msg: this.addMessageInput.value,
+  //         type: 'send',
+  //         user: name,
+  //       })
+  //     );
+  //     this.addMessageInput.value = '';
+  //   });
+  // }
   sendMessage(name) {
-    this.addMessage = this.container.querySelector('[data-id="addMessage"]'); //фома
-    this.addMessageInput = this.addMessage.querySelector('[data-id="message"]'); //поле ввода
-    this.addMessage.addEventListener('submit', (e) => {
+    this.addMessage = this.container.querySelector('[data-id="addMessage"]');
+    this.addMessageInput = this.addMessage.querySelector('[data-id="message"]');
+
+    this.addMessage.addEventListener("submit", (e) => {
       e.preventDefault();
-      this.ws.send(
-        JSON.stringify({
-          msg: this.addMessageInput.value,
-          type: 'send',
-          user: name,
-        })
-      );
-      this.addMessageInput.value = '';
+      const messageText = this.addMessageInput.value.trim();
+      if (!messageText) return;
+
+      if (this.ws.readyState === WebSocket.OPEN) {
+        this.ws.send(
+          JSON.stringify({
+            msg: messageText,
+            type: "send",
+            user: name,
+          })
+        );
+        this.addMessageInput.value = "";
+      } else {
+        alert("Соединение с чатом потеряно. Обновите страницу.");
+      }
     });
   }
 
   //Метод закрытия документа
+  // closingPage(name) {
+  //   window.addEventListener("unload", () => {
+  //     this.ws.send(
+  //       JSON.stringify({ msg: "вышел", type: "exit", user: { name } })
+  //     );
+  //   });
+  // }
   closingPage(name) {
-    window.addEventListener('unload', () => {
-      this.ws.send(
-        JSON.stringify({ msg: 'вышел', type: 'exit', user: { name } })
-      );
-    });
+    const tryToSendExit = () => {
+      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+        this.ws.send(
+          JSON.stringify({
+            msg: "вышел",
+            type: "exit",
+            user: { name },
+          })
+        );
+      }
+    };
+
+    window.addEventListener("beforeunload", tryToSendExit);
   }
 }
