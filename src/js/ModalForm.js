@@ -12,7 +12,7 @@ export default class ModalForm {
                 <button type="submit" data-id="ok" class="form__btn">Продолжить</button>    
             </form>
         </div>`;
-    this.root.insertAdjacentHTML("beforeEnd", modalNicknameHtml);
+    this.root.insertAdjacentHTML('beforeEnd', modalNicknameHtml);
   }
 
   createmodalChat() {
@@ -31,6 +31,6 @@ export default class ModalForm {
             <button type="submit" data-id="ok" class="form__btn">Отправить</button>    
         </form>
     </div>`;
-    this.root.insertAdjacentHTML("beforeEnd", modalMessageSendHtml);
+    this.root.insertAdjacentHTML('beforeEnd', modalMessageSendHtml);
   }
 }
