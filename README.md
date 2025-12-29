@@ -1,4 +1,4 @@
-
+https://dmitry-baz.github.io/ahj-homeworks-sse-ws/
 ![CI](https://github.com/Dmitry-Baz/ahj-homeworks_events/actions/workflows/web.yml/badge.svg) 
 # Домашнее задание к занятию "8. EventSource, Websockets"
 
